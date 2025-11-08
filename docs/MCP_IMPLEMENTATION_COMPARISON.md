@@ -158,6 +158,7 @@ graph LR
 ### Communication Protocol
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#64b5f6','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#1976d2','secondaryColor':'#ffb74d','tertiaryColor':'#ffccbc'}}}%%
 sequenceDiagram
     participant Client as Client<br/>(Orchestrator)
     participant Server as Server<br/>(MCP Akademik)
@@ -178,10 +179,6 @@ sequenceDiagram
     DB-->>Server: Dr. Budi Santoso
 
     Server-->>Client: result<br/>{content: "Dr. Budi Santoso"}
-
-    style Client fill:#64b5f6,stroke:#1976d2,stroke-width:2px
-    style Server fill:#ffb74d,stroke:#e65100,stroke-width:2px
-    style DB fill:#ffccbc,stroke:#d84315,stroke-width:2px
 ```
 
 ### Pros ✅
