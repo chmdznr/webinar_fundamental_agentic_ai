@@ -376,14 +376,21 @@ cd ../rag && python tool_retriever.py
 
 ## 🎤 Webinar Presentation
 
-For complete webinar presentation materials including:
+### 📊 Presentation Slides
+
+**Interactive HTML Slides:** [docs/slides.html](docs/slides.html)
+- Open in browser (Chrome, Firefox, Safari)
+- Navigate: Arrow keys or click
+- Fullscreen: Press `F` key
+- Overview: Press `ESC` key
+- Print to PDF: Add `?print-pdf` to URL
+
+**Presenter Guide:** [docs/WEBINAR_PRESENTATION.md](docs/WEBINAR_PRESENTATION.md)
 - Detailed demo scripts with talking points
 - Architecture explanations for beginners
 - Live demo scenarios with expected outputs
 - Common Q&A and troubleshooting
 - Presenter notes and timing guide
-
-**See:** [docs/WEBINAR_PRESENTATION.md](docs/WEBINAR_PRESENTATION.md)
 
 ### Quick Demo Flow
 

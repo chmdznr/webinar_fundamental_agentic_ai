@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamental Agentic AI - Webinar</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/theme/black.css">
+
+    <!-- Code highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/highlight/monokai.css">
+
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .reveal pre { font-size: 0.5em; width: 100%; }
+        .reveal code { font-family: 'Courier New', monospace; }
+        .reveal .small { font-size: 0.7em; }
+        .reveal .tiny { font-size: 0.5em; }
+        .reveal .highlight-green { color: #4CAF50; }
+        .reveal .highlight-red { color: #F44336; }
+        .reveal .highlight-yellow { color: #FFC107; }
+        .reveal ul { font-size: 0.8em; }
+        .reveal .architecture-box {
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+        .reveal .emoji { font-size: 1.5em; }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- TITLE SLIDE -->
+            <section data-background-gradient="linear-gradient(to bottom, #283b95, #17b2c3)">
+                <h1>🤖 Fundamental Agentic AI</h1>
+                <h3>Membangun AI Agent dengan MCP dan RAG</h3>
+                <p style="margin-top: 50px;">
+                    <strong>Project:</strong> AgenKampus<br>
+                    <strong>Durasi:</strong> 60 menit<br>
+                    <strong>Level:</strong> Beginner-Friendly
+                </p>
+                <p class="small" style="margin-top: 50px; opacity: 0.7;">
+                    Tekan <kbd>→</kbd> untuk mulai | <kbd>ESC</kbd> untuk overview
+                </p>
+            </section>
+
+            <!-- AGENDA -->
+            <section>
+                <h2>📋 Agenda</h2>
+                <ol>
+                    <li>Pengenalan Agentic AI <span class="small">(5 menit)</span></li>
+                    <li>Database & MCP Servers <span class="small">(10 menit)</span></li>
+                    <li>RAG-for-Tools System <span class="small">(10 menit)</span></li>
+                    <li>Live Demo: Agent in Action <span class="small">(20 menit)</span></li>
+                    <li>Behind the Scenes <span class="small">(10 menit)</span></li>
+                    <li>Q&A <span class="small">(5 menit)</span></li>
+                </ol>
+            </section>
+
+            <!-- SECTION 1: INTRODUCTION -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 1</h1>
+                    <h2>Pengenalan Agentic AI</h2>
+                    <p class="small">⏱️ 5 menit</p>
+                </section>
+
+                <section>
+                    <h2>Pertanyaan Pembuka</h2>
+                    <p class="fragment" style="font-size: 1.5em;">
+                        🙋 Siapa yang pernah pakai ChatGPT?
+                    </p>
+                    <p class="fragment" style="margin-top: 50px;">
+                        Tapi... apakah ChatGPT bisa:
+                    </p>
+                    <ul class="fragment">
+                        <li>❌ Query database kalian?</li>
+                        <li>❌ Jalankan Python script?</li>
+                        <li>❌ Kirim email?</li>
+                        <li>❌ Update spreadsheet?</li>
+                    </ul>
+                    <p class="fragment highlight-red" style="margin-top: 30px; font-size: 1.2em;">
+                        <strong>Jawaban: TIDAK!</strong>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>ChatGPT vs Agentic AI</h2>
+                    <div style="display: flex; justify-content: space-around; margin-top: 50px;">
+                        <div class="fragment">
+                            <h3>💬 ChatGPT</h3>
+                            <p>Hanya bisa <strong>ngobrol</strong></p>
+                            <ul class="small">
+                                <li>Menjawab pertanyaan</li>
+                                <li>Menulis teks</li>
+                                <li>Brainstorming</li>
+                            </ul>
+                        </div>
+                        <div class="fragment">
+                            <h3>🤖 Agentic AI</h3>
+                            <p>Bisa <strong class="highlight-green">mengambil tindakan</strong></p>
+                            <ul class="small">
+                                <li>Query database</li>
+                                <li>Jalankan code</li>
+                                <li>Kirim email</li>
+                                <li>Update data</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Arsitektur Agentic AI</h2>
+                    <pre><code data-trim data-noescape class="language-plaintext" style="font-size: 0.35em;">
+User: "Siapa dosen pembimbing Agus?"
+       ↓
+┌──────────────────────────────────────┐
+│    Agent (Brain) - GPT-4o-mini       │
+│  "Saya perlu tool get_dosen_pembimbing" │
+└─────┬────────────────────────────┬───┘
+      │                            │
+ Step 1: RAG               Step 2: Execute
+      ▼                            ▼
+┌─────────────┐          ┌──────────────────┐
+│  RAG System │          │   MCP Servers    │
+│  Find Tools │          │  ┌────────────┐  │
+└─────────────┘          │  │ Akademik   │  │
+                         │  │ - SQL Query│  │
+                         │  └─────┬──────┘  │
+                         └────────┼─────────┘
+                                  ▼
+                         ┌──────────────────┐
+                         │  kampus.db       │
+                         │  (SQLite)        │
+                         └──────────────────┘
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>4 Komponen Utama</h2>
+                    <div class="fragment architecture-box">
+                        <h3>1. 🧠 Agent (Otak)</h3>
+                        <p class="small">GPT-4o-mini yang mengambil keputusan: "Tool mana yang harus dipakai?"</p>
+                    </div>
+                    <div class="fragment architecture-box">
+                        <h3>2. 🛡️ MCP (Security Bridge)</h3>
+                        <p class="small">AI TIDAK pernah langsung akses database. Hanya boleh panggil tools yang didefinisikan.</p>
+                    </div>
+                    <div class="fragment architecture-box">
+                        <h3>3. 🔧 Tools (Pekerja)</h3>
+                        <p class="small">Function konkret ditulis oleh MANUSIA yang melakukan pekerjaan nyata.</p>
+                    </div>
+                    <div class="fragment architecture-box">
+                        <h3>4. 📚 RAG (Pustakawan)</h3>
+                        <p class="small">Cari tools yang relevan dari ribuan pilihan pakai semantic search.</p>
+                    </div>
+                </section>
+
+                <section data-background-color="#4CAF50">
+                    <h2>Key Message #1</h2>
+                    <p style="font-size: 1.5em; margin-top: 50px;">
+                        <strong>"AI never touches database directly."</strong>
+                    </p>
+                    <p class="small" style="margin-top: 30px;">
+                        Humans write the SQL,<br>
+                        AI just decides WHEN to use it.
+                    </p>
+                    <p class="tiny" style="margin-top: 50px; opacity: 0.7;">
+                        Ini adalah kunci keamanan MCP!
+                    </p>
+                </section>
+            </section>
+
+            <!-- SECTION 2: DATABASE & MCP -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 2</h1>
+                    <h2>Database & MCP Servers</h2>
+                    <p class="small">⏱️ 10 menit</p>
+                </section>
+
+                <section>
+                    <h2>Database Structure</h2>
+                    <p class="small">kampus.db - SQLite dengan 4 tabel:</p>
+                    <pre><code data-trim class="language-sql">
+-- 1. Tabel Dosen
+CREATE TABLE dosen (
+    id INTEGER PRIMARY KEY,
+    nama_dosen TEXT,
+    nidn TEXT UNIQUE
+);
+
+-- 2. Tabel Mahasiswa
+CREATE TABLE mahasiswa (
+    id INTEGER PRIMARY KEY,
+    nama_mahasiswa TEXT,
+    nim TEXT UNIQUE,
+    id_dospem INTEGER,
+    FOREIGN KEY (id_dospem) REFERENCES dosen(id)
+);
+
+-- 3. Tabel Mata Kuliah (omitted...)
+-- 4. Tabel Transkrip (omitted...)
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>Sample Query Manual</h2>
+                    <pre><code data-trim class="language-sql">
+SELECT d.nama_dosen
+FROM mahasiswa m
+JOIN dosen d ON m.id_dospem = d.id
+WHERE m.nama_mahasiswa = 'Agus Setiawan';
+                    </code></pre>
+                    <p class="fragment highlight-green" style="margin-top: 30px;">
+                        <strong>Result:</strong> Dr. Budi Santoso
+                    </p>
+                    <p class="fragment small" style="margin-top: 30px;">
+                        Query ini akan kita "wrap" dalam MCP tool 👇
+                    </p>
+                </section>
+
+                <section>
+                    <h2>MCP Tool: get_dosen_pembimbing</h2>
+                    <pre><code data-trim class="language-python" style="font-size: 0.4em;">
+@mcp.tool()
+def get_dosen_pembimbing(nama_mahasiswa: str) -> str:
+    """
+    Use this tool to find the academic advisor (dosen pembimbing)
+    of a student.
+
+    Args:
+        nama_mahasiswa: Full name of the student
+
+    Returns:
+        Name of the academic advisor
+    """
+    query = """
+        SELECT d.nama_dosen
+        FROM mahasiswa m
+        JOIN dosen d ON m.id_dospem = d.id
+        WHERE m.nama_mahasiswa = ?
+    """
+    result = db.execute_query(query, (nama_mahasiswa,), fetch_one=True)
+
+    if result:
+        return result[0]
+    else:
+        return f"Student {nama_mahasiswa} not found"
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>3 Hal Penting dalam MCP Tool</h2>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <h3>1. Docstring yang Jelas 📝</h3>
+                        <p class="small">AI membaca docstring untuk memahami fungsi tool</p>
+                    </div>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <h3>2. Parameterized SQL ⚠️</h3>
+                        <pre><code data-trim class="language-python">
+# ✅ AMAN - Parameterized
+cursor.execute("WHERE nama = ?", (nama_mahasiswa,))
+
+# ❌ BAHAYA - SQL Injection!
+cursor.execute(f"WHERE nama = '{nama_mahasiswa}'")
+                        </code></pre>
+                    </div>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <h3>3. SQL Ditulis oleh MANUSIA 👨‍💻</h3>
+                        <p class="small">AI tidak pernah generate SQL sendiri!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Mengapa Parameterized SQL?</h2>
+                    <p class="small">Contoh serangan SQL Injection:</p>
+                    <pre><code data-trim class="language-python">
+nama_mahasiswa = "'; DROP TABLE mahasiswa; --"
+
+# Dengan f-string (BAHAYA!):
+query = f"WHERE nama = '{nama_mahasiswa}'"
+# Result: WHERE nama = ''; DROP TABLE mahasiswa; --'
+# 💥 Tabel mahasiswa terhapus!
+
+# Dengan parameterized (AMAN!):
+cursor.execute("WHERE nama = ?", (nama_mahasiswa,))
+# Parameter diperlakukan sebagai literal string
+# ✅ Aman dari injection
+                    </code></pre>
+                </section>
+
+                <section data-background-color="#4CAF50">
+                    <h2>Key Message #2</h2>
+                    <p style="font-size: 1.5em; margin-top: 50px;">
+                        <strong>"SQL written by humans, not AI."</strong>
+                    </p>
+                    <p class="small" style="margin-top: 30px;">
+                        This is security by design.
+                    </p>
+                </section>
+            </section>
+
+            <!-- SECTION 3: RAG SYSTEM -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 3</h1>
+                    <h2>RAG-for-Tools System</h2>
+                    <p class="small">⏱️ 10 menit</p>
+                </section>
+
+                <section>
+                    <h2>The Scaling Problem</h2>
+                    <p class="fragment">Bayangkan punya <strong class="highlight-yellow">1000 tools</strong></p>
+                    <p class="fragment small" style="margin-top: 30px;">
+                        Apakah AI harus baca semua deskripsi 1000 tools<br>
+                        setiap kali user bertanya?
+                    </p>
+                    <div class="fragment" style="margin-top: 50px;">
+                        <h3 class="highlight-red">Masalah:</h3>
+                        <ul>
+                            <li>❌ Melebihi token limit (context window)</li>
+                            <li>❌ Lambat (banyak text yang diproses)</li>
+                            <li>❌ Mahal (token = uang)</li>
+                            <li>❌ AI bingung (information overload)</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Solusi: RAG-for-Tools</h2>
+                    <div style="display: flex; justify-content: space-around; margin-top: 50px;">
+                        <div class="fragment">
+                            <h3 class="highlight-red">❌ Tanpa RAG</h3>
+                            <p class="small">Agent lihat <strong>1000 tools</strong></p>
+                            <ul class="tiny">
+                                <li>Token limit exceeded</li>
+                                <li>Lambat & mahal</li>
+                                <li>AI overwhelmed</li>
+                            </ul>
+                        </div>
+                        <div class="fragment">
+                            <h3 class="highlight-green">✅ Dengan RAG</h3>
+                            <p class="small">Agent lihat <strong>3 tools</strong> (top relevant)</p>
+                            <ul class="tiny">
+                                <li>Cepat & murah</li>
+                                <li>Fokus & akurat</li>
+                                <li>Scalable!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Cara Kerja RAG</h2>
+                    <div class="small">
+                        <p><strong>Step 1: Indexing (Setup Awal)</strong></p>
+                        <pre><code data-trim class="language-python" style="font-size: 0.8em;">
+# Load tool descriptions
+tools = load_json("tool_descriptions.json")
+
+# Convert to embeddings (vectors)
+text = "Get current date and time Jakarta timezone..."
+embedding = model.encode(text)
+# Result: [0.12, -0.34, 0.56, ..., 0.23]  (384 numbers)
+
+# Store in ChromaDB
+chromadb.add(embeddings, metadata=tools)
+                        </code></pre>
+                        <p class="fragment"><strong>Step 2: Retrieval (Setiap Query)</strong></p>
+                        <pre class="fragment"><code data-trim class="language-python" style="font-size: 0.8em;">
+# User query
+query = "Jam berapa sekarang?"
+
+# Find similar tools
+results = chromadb.query(query_embedding, top_k=3)
+# Returns: get_waktu_saat_ini (similarity: 0.82)
+                        </code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Similarity Score Explained</h2>
+                    <div style="margin-top: 30px;">
+                        <p class="small">Cosine Similarity:</p>
+                        <pre><code data-trim class="language-plaintext">
+similarity = (query_vector · tool_vector) /
+             (|query_vector| × |tool_vector|)
+                        </code></pre>
+                        <div class="fragment" style="margin-top: 30px;">
+                            <p><strong>0.0</strong> = Completely different</p>
+                            <p><strong>0.5</strong> = Somewhat similar</p>
+                            <p><strong>1.0</strong> = Identical</p>
+                        </div>
+                        <p class="fragment small" style="margin-top: 30px;">
+                            Threshold biasanya &gt; 0.3
+                        </p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Bilingual Support</h2>
+                    <pre><code data-trim class="language-json" style="font-size: 0.45em;">
+{
+  "name": "get_dosen_pembimbing",
+  "keywords": [
+    "advisor", "supervisor", "dosen", "pembimbing", "dospem",
+    "academic", "thesis", "skripsi"
+  ],
+  "examples": [
+    "Who is the advisor of Agus?",
+    "Siapa dosen pembimbing Agus?",
+    "Find thesis supervisor for student"
+  ]
+}
+                    </code></pre>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <p class="small">Test:</p>
+                        <ul class="tiny">
+                            <li>"Who is the advisor?" → get_dosen_pembimbing (0.85)</li>
+                            <li>"Siapa pembimbing akademik?" → get_dosen_pembimbing (0.83)</li>
+                        </ul>
+                        <p class="small highlight-green">✅ Works across languages!</p>
+                    </div>
+                </section>
+
+                <section data-background-color="#4CAF50">
+                    <h2>Key Message #3</h2>
+                    <p style="font-size: 1.5em; margin-top: 50px;">
+                        <strong>"RAG scales to 1000+ tools."</strong>
+                    </p>
+                    <p class="small" style="margin-top: 30px;">
+                        Agent only sees top 3 relevant tools.
+                    </p>
+                    <div class="fragment tiny" style="margin-top: 50px;">
+                        <p>Performance:</p>
+                        <ul>
+                            <li>4 tools: ~60ms per query</li>
+                            <li>1000 tools: Still ~60ms per query ✅</li>
+                        </ul>
+                    </div>
+                </section>
+            </section>
+
+            <!-- SECTION 4: LIVE DEMO -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 4</h1>
+                    <h2>Live Demo: Agent in Action</h2>
+                    <p class="small">⏱️ 20 menit</p>
+                </section>
+
+                <section>
+                    <h2>Demo Scenario 1: Time Query</h2>
+                    <p><strong>Input:</strong> "Jam berapa sekarang?"</p>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <pre class="tiny"><code data-trim class="language-plaintext">
+🔍 RAG Retrieval:
+   1. get_waktu_saat_ini (0.89)
+   2. kalkulator_sederhana (0.12)
+   3. list_all_students (0.08)
+
+🤖 Agent Decision:
+   Selected tool: get_waktu_saat_ini
+   Reasoning: User asking for current time
+
+🛠️ Tool Execution:
+   Calling: get_waktu_saat_ini()
+   Result: "2025-01-08 15:45:23"
+
+🤖 Agent: Waktu saat ini adalah 2025-01-08 15:45:23
+                        </code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Demo Scenario 2: Advisor Query</h2>
+                    <p><strong>Input:</strong> "Siapa dosen pembimbing Agus Setiawan?"</p>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <pre class="tiny"><code data-trim class="language-plaintext">
+🔍 RAG Retrieval:
+   1. get_dosen_pembimbing (0.91)
+   2. get_mata_kuliah_mahasiswa (0.45)
+   3. list_all_students (0.32)
+
+🤖 Agent Decision:
+   Selected tool: get_dosen_pembimbing
+   Parameters: {"nama_mahasiswa": "Agus Setiawan"}
+
+🛠️ Tool Execution:
+   Calling: get_dosen_pembimbing("Agus Setiawan")
+   SQL Query: SELECT d.nama_dosen FROM mahasiswa m JOIN dosen d...
+   Result: "Dr. Budi Santoso"
+
+🤖 Agent: Dosen pembimbing Agus Setiawan adalah Dr. Budi Santoso
+                        </code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Demo Scenario 3: Courses Query</h2>
+                    <p><strong>Input:</strong> "Mata kuliah apa yang diambil Rini Wijaya?"</p>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <pre class="tiny"><code data-trim class="language-plaintext">
+🔍 RAG Retrieval:
+   1. get_mata_kuliah_mahasiswa (0.87)
+
+🤖 Agent Decision:
+   Selected tool: get_mata_kuliah_mahasiswa
+   Parameters: {"nama_mahasiswa": "Rini Wijaya"}
+
+🛠️ Tool Execution:
+   SQL Query: SELECT mk.nama_mk, t.nilai FROM transkrip t JOIN...
+   Result: [
+     {"mata_kuliah": "Kecerdasan Buatan", "nilai": "A"},
+     {"mata_kuliah": "Pemrograman Web", "nilai": "A"}
+   ]
+
+🤖 Agent: Rini Wijaya mengambil mata kuliah:
+   1. Kecerdasan Buatan (Nilai: A)
+   2. Pemrograman Web (Nilai: A)
+                        </code></pre>
+                    </div>
+                </section>
+
+                <section data-background-color="#F44336">
+                    <h2>Demo Scenario 4: Write Attempt</h2>
+                    <p><strong>Input:</strong> "Ubah nilai Agus menjadi A semua"</p>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <pre class="tiny"><code data-trim class="language-plaintext">
+🔍 RAG Retrieval:
+   1. get_mata_kuliah_mahasiswa (0.52)
+   2. get_dosen_pembimbing (0.38)
+
+🤖 Agent Decision:
+   No tool available for modifying data
+   All tools are read-only
+
+🤖 Agent: Maaf, saya tidak memiliki tools untuk mengubah data.
+   Saya hanya bisa membaca informasi dari database.
+                        </code></pre>
+                    </div>
+                    <p class="fragment highlight-green" style="margin-top: 30px; font-size: 1.2em;">
+                        <strong>✅ Security by design!</strong>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Key Takeaways dari Demo</h2>
+                    <div style="margin-top: 50px;">
+                        <div class="fragment architecture-box">
+                            <p>✅ <strong>2-Step Workflow Works!</strong></p>
+                            <p class="small">RAG finds tools → Agent executes</p>
+                        </div>
+                        <div class="fragment architecture-box">
+                            <p>✅ <strong>Multilingual Understanding</strong></p>
+                            <p class="small">Query in Indonesian, tools in English, works seamlessly</p>
+                        </div>
+                        <div class="fragment architecture-box">
+                            <p>✅ <strong>Security Built-In</strong></p>
+                            <p class="small">Read-only tools, parameterized SQL, no dangerous operations</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- SECTION 5: BEHIND THE SCENES -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 5</h1>
+                    <h2>Behind the Scenes</h2>
+                    <p class="small">⏱️ 10 menit</p>
+                </section>
+
+                <section>
+                    <h2>Architecture Decisions</h2>
+                    <div class="small">
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Why GPT-4o-mini?</h3>
+                            <ul class="tiny">
+                                <li>Fast (~500-1000ms)</li>
+                                <li>Cheap (~$0.0002 per query)</li>
+                                <li>Good enough for tool selection</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Why Temperature = 0?</h3>
+                            <ul class="tiny">
+                                <li>Deterministic responses</li>
+                                <li>Same query → same answer</li>
+                                <li>Good for production</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Why Top-K = 3?</h3>
+                            <ul class="tiny">
+                                <li>Balance: enough options vs context size</li>
+                                <li>Sweet spot: K=3-5</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Performance Metrics</h2>
+                    <table style="font-size: 0.6em; margin-top: 30px;">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Time</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RAG Retrieval</td>
+                                <td>~60ms</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr>
+                                <td>LLM Decision (GPT-4o-mini)</td>
+                                <td>~800ms</td>
+                                <td>$0.0002</td>
+                            </tr>
+                            <tr>
+                                <td>Tool Execution</td>
+                                <td>~10ms</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr class="highlight-green">
+                                <td><strong>Total per Query</strong></td>
+                                <td><strong>~870ms</strong></td>
+                                <td><strong>$0.0002</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="fragment small" style="margin-top: 30px;">
+                        1000 queries = ~$0.20 💰
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Scalability</h2>
+                    <table style="font-size: 0.7em; margin-top: 30px;">
+                        <thead>
+                            <tr>
+                                <th>Number of Tools</th>
+                                <th>RAG Time</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>10 tools</td>
+                                <td>~60ms</td>
+                                <td>Same</td>
+                            </tr>
+                            <tr>
+                                <td>100 tools</td>
+                                <td>~60ms</td>
+                                <td>Same</td>
+                            </tr>
+                            <tr class="highlight-green">
+                                <td><strong>1000 tools</strong></td>
+                                <td><strong>~80ms</strong></td>
+                                <td><strong>Same</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="fragment highlight-green" style="margin-top: 50px; font-size: 1.2em;">
+                        <strong>✅ Performance stays constant!</strong>
+                    </p>
+                </section>
+
+                <section data-background-color="#4CAF50">
+                    <h2>Key Message #4</h2>
+                    <p style="font-size: 1.5em; margin-top: 50px;">
+                        <strong>"This architecture scales."</strong>
+                    </p>
+                    <p class="small" style="margin-top: 30px;">
+                        Add 1000 tools, performance stays the same.
+                    </p>
+                </section>
+            </section>
+
+            <!-- SECTION 6: NEXT STEPS -->
+            <section>
+                <section data-background-color="#283b95">
+                    <h1>Part 6</h1>
+                    <h2>Next Steps & Q&A</h2>
+                    <p class="small">⏱️ 5 menit</p>
+                </section>
+
+                <section>
+                    <h2>What to Try Next</h2>
+                    <div class="small">
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Level 1: Modify Existing</h3>
+                            <pre><code data-trim class="language-python" style="font-size: 0.8em;">
+@mcp.tool()
+def calculate_gpa(nama_mahasiswa: str) -> float:
+    """Calculate student's GPA"""
+    # Your implementation here
+                            </code></pre>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Level 2: Add Features</h3>
+                            <ul class="tiny">
+                                <li>Tool untuk jadwal kuliah</li>
+                                <li>Tool untuk cek ruangan kosong</li>
+                                <li>Tool untuk search mahasiswa by criteria</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 20px;">
+                            <h3>Level 3: Build New System</h3>
+                            <p class="tiny">E-commerce agent, Email assistant, Code review agent</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Resources</h2>
+                    <div class="small">
+                        <h3>Documentation:</h3>
+                        <ul class="tiny">
+                            <li>LangChain: python.langchain.com</li>
+                            <li>MCP Protocol: modelcontextprotocol.io</li>
+                            <li>ChromaDB: docs.trychroma.com</li>
+                        </ul>
+                        <h3 style="margin-top: 30px;">This Project:</h3>
+                        <p class="tiny">
+                            github.com/chmdznr/webinar_fundamental_agentic_ai
+                        </p>
+                        <p class="fragment highlight-green" style="margin-top: 30px;">
+                            ⭐ Clone and experiment!
+                        </p>
+                    </div>
+                </section>
+
+                <section data-background-gradient="linear-gradient(to bottom, #283b95, #17b2c3)">
+                    <h2>Key Takeaways</h2>
+                    <ol style="font-size: 0.8em; text-align: left;">
+                        <li class="fragment"><strong>Agentic AI = AI that takes ACTION</strong><br>
+                            <span class="small">Not just chat, but real work</span></li>
+                        <li class="fragment"><strong>MCP = Security by Design</strong><br>
+                            <span class="small">AI never touches database directly</span></li>
+                        <li class="fragment"><strong>RAG = Scalability</strong><br>
+                            <span class="small">Find relevant tools from thousands</span></li>
+                        <li class="fragment"><strong>2-Step Workflow Works</strong><br>
+                            <span class="small">RAG → Find tools, Agent → Execute</span></li>
+                        <li class="fragment"><strong>You Can Build This!</strong><br>
+                            <span class="small">Clone the repo, follow README, experiment</span></li>
+                    </ol>
+                </section>
+
+                <section data-background-gradient="linear-gradient(to bottom, #17b2c3, #283b95)">
+                    <h1>Thank You! 🙏</h1>
+                    <h3 style="margin-top: 50px;">Questions?</h3>
+                    <p class="small" style="margin-top: 50px; opacity: 0.7;">
+                        Repository: github.com/chmdznr/webinar_fundamental_agentic_ai
+                    </p>
+                </section>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/highlight/highlight.js"></script>
+
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            center: true,
+            slideNumber: 'c/t',
+            showSlideNumber: 'speaker',
+            plugins: [ RevealHighlight, RevealNotes ],
+
+            // Navigation
+            keyboard: {
+                39: 'next', // right arrow
+                37: 'prev', // left arrow
+                78: 'next', // n
+                80: 'prev', // p
+            },
+
+            // Customization
+            width: 1280,
+            height: 720,
+            margin: 0.04,
+
+            // Code highlighting
+            highlight: {
+                highlightOnLoad: true,
+                escapeHTML: false
+            }
+        });
+    </script>
+</body>
+</html>
