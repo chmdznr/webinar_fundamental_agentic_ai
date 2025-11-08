@@ -52,30 +52,28 @@ result = get_dosen_pembimbing("Agus Setiawan")
 
 ### Architecture
 
-```
-┌─────────────────────────────────┐
-│   Agent Orchestrator            │
-│                                 │
-│   ┌──────────────────────┐     │
-│   │  Direct Import       │     │
-│   │  from mcp_akademik   │     │
-│   │  import get_dosen... │     │
-│   └──────────────────────┘     │
-│            │                    │
-│            ▼                    │
-│   ┌──────────────────────┐     │
-│   │  Tool Function       │     │
-│   │  (in same process)   │     │
-│   └──────────────────────┘     │
-│            │                    │
-│            ▼                    │
-│   ┌──────────────────────┐     │
-│   │  Database            │     │
-│   │  (kampus.db)         │     │
-│   └──────────────────────┘     │
-└─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph SingleProcess["🔷 Single Process - Everything runs together"]
+        Orchestrator["Agent Orchestrator"]
 
-Single Process - Everything runs together
+        subgraph Import["Direct Import"]
+            ImportCode["from mcp_akademik<br/>import get_dosen_pembimbing"]
+        end
+
+        ToolFunc["Tool Function<br/>(in same process)"]
+        Database[("Database<br/>(kampus.db)")]
+
+        Orchestrator --> Import
+        Import --> ToolFunc
+        ToolFunc --> Database
+    end
+
+    style SingleProcess fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    style Orchestrator fill:#64b5f6,stroke:#1976d2,stroke-width:2px
+    style Import fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style ToolFunc fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style Database fill:#ffccbc,stroke:#d84315,stroke-width:2px
 ```
 
 ### Pros ✅
@@ -130,58 +128,60 @@ result = await session.call_tool(
 
 ### Architecture
 
-```
-┌─────────────────────┐         ┌──────────────────────┐
-│  Agent Orchestrator │         │  MCP Server Process  │
-│  (Client)           │         │  (Akademik)          │
-│                     │         │                      │
-│  ┌──────────────┐  │         │  ┌────────────────┐  │
-│  │ MCP Client   │  │         │  │ MCP Server     │  │
-│  │ Session      │◄─┼─stdio──►│  │ (FastMCP)      │  │
-│  └──────────────┘  │         │  └────────────────┘  │
-│         │          │         │          │           │
-│         │          │         │          ▼           │
-│         │          │         │  ┌────────────────┐  │
-│         │          │         │  │ Tool Functions │  │
-│         │          │         │  │ @mcp.tool()    │  │
-│         │          │         │  └────────────────┘  │
-│         │          │         │          │           │
-│         │          │         │          ▼           │
-│         │          │         │  ┌────────────────┐  │
-│         │          │         │  │ Database       │  │
-│         │          │         │  │ (kampus.db)    │  │
-│         │          │         │  └────────────────┘  │
-└─────────────────────┘         └──────────────────────┘
+```mermaid
+graph LR
+    subgraph ClientProcess["🔷 Agent Orchestrator (Client Process)"]
+        Client["MCP Client<br/>Session"]
+    end
 
-Separate Processes - True client/server architecture
+    subgraph ServerProcess["🔶 MCP Server Process (Akademik)"]
+        Server["MCP Server<br/>(FastMCP)"]
+        Tools["Tool Functions<br/>@mcp.tool()"]
+        Database[("Database<br/>(kampus.db)")]
+
+        Server --> Tools
+        Tools --> Database
+    end
+
+    Client <-->|"stdio<br/>(JSON-RPC)"| Server
+
+    style ClientProcess fill:#e1f5ff,stroke:#0288d1,stroke-width:3px
+    style ServerProcess fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    style Client fill:#64b5f6,stroke:#1976d2,stroke-width:2px
+    style Server fill:#ffb74d,stroke:#e65100,stroke-width:2px
+    style Tools fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style Database fill:#ffccbc,stroke:#d84315,stroke-width:2px
 ```
+
+**Separate Processes - True client/server architecture**
 
 ### Communication Protocol
 
-```
-Client (Orchestrator)          Server (MCP Akademik)
-        │                              │
-        ├── initialize() ────────────> │
-        │<──── capabilities ─────────── │
-        │                              │
-        ├── list_tools() ────────────> │
-        │<── tools: [get_dosen_...] ─── │
-        │                              │
-        ├── call_tool() ──────────────> │
-        │    {                          │
-        │      name: "get_dosen_...",   │
-        │      args: {...}              │
-        │    }                          │
-        │                              │
-        │                          ┌───┴───┐
-        │                          │ Query │
-        │                          │  DB   │
-        │                          └───┬───┘
-        │                              │
-        │<──── result ─────────────────┤
-        │    {                          │
-        │      content: "Dr. Budi..."   │
-        │    }                          │
+```mermaid
+sequenceDiagram
+    participant Client as Client<br/>(Orchestrator)
+    participant Server as Server<br/>(MCP Akademik)
+    participant DB as Database
+
+    Note over Client,Server: 1. Initialization
+    Client->>Server: initialize()
+    Server-->>Client: capabilities
+
+    Note over Client,Server: 2. Tool Discovery
+    Client->>Server: list_tools()
+    Server-->>Client: tools: [get_dosen_pembimbing, ...]
+
+    Note over Client,Server: 3. Tool Execution
+    Client->>Server: call_tool()<br/>{name: "get_dosen_pembimbing",<br/>args: {nama_mahasiswa: "Agus"}}
+
+    Server->>DB: Query<br/>SELECT * WHERE ...
+    DB-->>Server: Dr. Budi Santoso
+
+    Server-->>Client: result<br/>{content: "Dr. Budi Santoso"}
+
+    style Client fill:#64b5f6,stroke:#1976d2,stroke-width:2px
+    style Server fill:#ffb74d,stroke:#e65100,stroke-width:2px
+    style DB fill:#ffccbc,stroke:#d84315,stroke-width:2px
 ```
 
 ### Pros ✅
