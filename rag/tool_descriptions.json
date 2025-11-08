@@ -1,0 +1,80 @@
+[
+  {
+    "name": "get_waktu_saat_ini",
+    "server": "Utilitas",
+    "description": "Use this tool to get the current date and time. Returns the current system time in ISO 8601 format (YYYY-MM-DD HH:MM:SS). No arguments are required. Perfect for answering questions about 'what time is it', 'current date', 'what day is today', or any time-related queries.",
+    "category": "utility",
+    "keywords": ["time", "date", "current", "now", "today", "waktu", "tanggal", "sekarang", "jam", "hari ini"],
+    "parameters": [],
+    "examples": [
+      "What time is it?",
+      "What's the current date?",
+      "Jam berapa sekarang?",
+      "Tanggal berapa hari ini?"
+    ]
+  },
+  {
+    "name": "kalkulator_sederhana",
+    "server": "Utilitas",
+    "description": "Use this tool to calculate simple mathematical expressions and arithmetic operations. Supports addition (+), subtraction (-), multiplication (*), division (/), and exponentiation (**). Can handle expressions with parentheses. Takes a string expression as input and returns the calculated result. Safe evaluation with no code injection risk.",
+    "category": "utility",
+    "keywords": ["calculate", "math", "arithmetic", "compute", "kalkulator", "hitung", "matematika", "plus", "minus", "times", "divide", "tambah", "kurang", "kali", "bagi"],
+    "parameters": [
+      {
+        "name": "ekspresi",
+        "type": "string",
+        "description": "Mathematical expression to evaluate",
+        "required": true
+      }
+    ],
+    "examples": [
+      "Calculate 2+2",
+      "What is 10*5?",
+      "Hitung 100/4",
+      "Berapa 2**8?"
+    ]
+  },
+  {
+    "name": "get_dosen_pembimbing",
+    "server": "Akademik",
+    "description": "Use this tool to find the academic advisor (dosen pembimbing) of a specific student. Searches the database to determine which lecturer is assigned as the academic supervisor for a given student. Requires the full name of the student. Returns the advisor's name or an error if student not found. This tool performs a database JOIN between student and lecturer tables.",
+    "category": "academic",
+    "keywords": ["advisor", "supervisor", "lecturer", "dosen", "pembimbing", "dospem", "academic advisor", "thesis advisor", "wali", "pembimbing akademik", "siapa dosen", "who is advisor"],
+    "parameters": [
+      {
+        "name": "nama_mahasiswa",
+        "type": "string",
+        "description": "Full name of the student (case-sensitive)",
+        "required": true
+      }
+    ],
+    "examples": [
+      "Who is the advisor of Agus Setiawan?",
+      "Find the academic supervisor for Rini Wijaya",
+      "Siapa dosen pembimbing Agus Setiawan?",
+      "Cari pembimbing akademik Rini Wijaya"
+    ]
+  },
+  {
+    "name": "get_mata_kuliah_mahasiswa",
+    "server": "Akademik",
+    "description": "Use this tool to get the complete list of courses (mata kuliah) taken by a specific student along with their grades. Retrieves the student's academic transcript showing all enrolled courses and letter grades received. Requires the full name of the student. Returns a formatted list of courses with grades or an error if student not found. This tool performs a complex 3-table JOIN across student, transcript, and course tables.",
+    "category": "academic",
+    "keywords": ["courses", "classes", "subjects", "grades", "transcript", "mata kuliah", "matkul", "nilai", "transkrip", "kuliah", "pelajaran", "what courses", "academic record", "apa mata kuliah", "nilai mahasiswa"],
+    "parameters": [
+      {
+        "name": "nama_mahasiswa",
+        "type": "string",
+        "description": "Full name of the student (case-sensitive)",
+        "required": true
+      }
+    ],
+    "examples": [
+      "What courses did Agus Setiawan take?",
+      "Show me Rini Wijaya's transcript",
+      "Mata kuliah apa yang diambil Agus Setiawan?",
+      "Lihat nilai Rini Wijaya",
+      "What are the grades for Agus?"
+    ]
+  }
+]
