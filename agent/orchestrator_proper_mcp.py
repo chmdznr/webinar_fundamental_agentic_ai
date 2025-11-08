@@ -85,6 +85,7 @@ class ProperMCPOrchestrator:
 
         # MCP server connections (will be initialized async)
         self.mcp_sessions = {}
+        self.mcp_contexts = {}  # Store context managers
         self.all_tools = {}
 
         print("\n🔌 MCP Servers will be connected on demand")
@@ -123,17 +124,22 @@ class ProperMCPOrchestrator:
                     env=None  # Inherit current environment
                 )
 
-                # Connect to the server via stdio
-                read, write = await stdio_client(server_params)
+                # Connect to the server via stdio (context manager)
+                stdio_ctx = stdio_client(server_params)
+                read, write = await stdio_ctx.__aenter__()
 
-                # Create MCP session
-                session = ClientSession(read, write)
+                # Store context manager for cleanup
+                self.mcp_contexts[server_name] = stdio_ctx
+
+                # Create MCP session (context manager)
+                session_ctx = ClientSession(read, write)
+                session = await session_ctx.__aenter__()
+
+                # Store session context for cleanup
+                self.mcp_sessions[server_name] = (session, session_ctx)
 
                 # Initialize the session
                 await session.initialize()
-
-                # Store the session
-                self.mcp_sessions[server_name] = session
 
                 # List available tools from this server
                 tools_response = await session.list_tools()
@@ -146,23 +152,49 @@ class ProperMCPOrchestrator:
                 for tool_info in server_tools:
                     tool_name = tool_info.name
 
-                    # Create wrapper function for this tool
-                    async def call_tool_wrapper(
-                        arguments: Dict[str, Any],
-                        session=session,
-                        tool_name=tool_name
-                    ):
-                        """Wrapper to call MCP tool via protocol."""
-                        result = await session.call_tool(tool_name, arguments)
-                        return result.content[0].text if result.content else ""
+                    # Extract input schema to know parameter names
+                    input_schema = tool_info.inputSchema if hasattr(tool_info, 'inputSchema') else {}
+                    required_props = input_schema.get('required', [])
+                    properties = input_schema.get('properties', {})
 
-                    # Register as LangChain tool
+                    # Create async wrapper function for this tool
+                    def make_wrapper(sess, tname, req_props, props):
+                        """Create a wrapper with proper closure."""
+                        async def async_wrapper(arguments):
+                            """Async wrapper to call MCP tool via protocol."""
+                            # Convert LangChain arguments to MCP format
+                            if isinstance(arguments, str):
+                                # LangChain passed a single string argument
+                                # Map it to the first required property
+                                if req_props:
+                                    arguments = {req_props[0]: arguments}
+                                else:
+                                    arguments = {}
+                            elif not isinstance(arguments, dict):
+                                # Convert to string then to dict
+                                if req_props:
+                                    arguments = {req_props[0]: str(arguments)}
+                                else:
+                                    arguments = {}
+
+                            # Call MCP tool with proper dict arguments
+                            result = await sess.call_tool(tname, arguments)
+                            return result.content[0].text if result.content else ""
+
+                        def sync_wrapper(arguments):
+                            """Sync wrapper - should not be called."""
+                            raise RuntimeError(f"Sync wrapper for {tname} should not be called. Use async agent.")
+
+                        return async_wrapper, sync_wrapper
+
+                    async_func, sync_func = make_wrapper(session, tool_name, required_props, properties)
+
+                    # Register as LangChain tool with both sync func and async coroutine
                     self.all_tools[tool_name] = Tool(
                         name=tool_name,
                         description=tool_info.description or f"Tool: {tool_name}",
-                        func=lambda args, wrapper=call_tool_wrapper: asyncio.run(
-                            wrapper(args)
-                        ),
+                        func=sync_func,  # Required parameter (fallback)
+                        coroutine=async_func,  # Use coroutine for async execution
                     )
 
                     print(f"      - {tool_name}")
@@ -170,6 +202,8 @@ class ProperMCPOrchestrator:
             except Exception as e:
                 print(f"  ⚠️  Failed to connect to {server_name}: {e}")
                 print(f"      Make sure {server_config['args'][0]} exists and is executable")
+                import traceback
+                traceback.print_exc()
 
         print(f"\n  ✓ Total tools loaded: {len(self.all_tools)}")
 
@@ -177,15 +211,24 @@ class ProperMCPOrchestrator:
         """Disconnect from all MCP servers."""
         print("\n🔌 Disconnecting from MCP Servers...")
 
-        for server_name, session in self.mcp_sessions.items():
+        for server_name, (session, session_ctx) in self.mcp_sessions.items():
             try:
-                # Close the session
-                await session.__aexit__(None, None, None)
-                print(f"  ✓ Disconnected from {server_name}")
+                # Close the session context
+                await session_ctx.__aexit__(None, None, None)
+                print(f"  ✓ Disconnected session from {server_name}")
             except Exception as e:
-                print(f"  ⚠️  Error disconnecting from {server_name}: {e}")
+                print(f"  ⚠️  Error disconnecting session from {server_name}: {e}")
+
+        for server_name, stdio_ctx in self.mcp_contexts.items():
+            try:
+                # Close the stdio context
+                await stdio_ctx.__aexit__(None, None, None)
+                print(f"  ✓ Closed stdio connection to {server_name}")
+            except Exception as e:
+                print(f"  ⚠️  Error closing stdio to {server_name}: {e}")
 
         self.mcp_sessions.clear()
+        self.mcp_contexts.clear()
 
     def _create_agent(self, tools: List[Tool]) -> AgentExecutor:
         """
@@ -282,7 +325,8 @@ class ProperMCPOrchestrator:
         agent_executor = self._create_agent(selected_tools)
 
         try:
-            result = agent_executor.invoke({"input": user_input})
+            # Use ainvoke for async execution
+            result = await agent_executor.ainvoke({"input": user_input})
 
             print(f"\n✅ Query completed successfully")
             return {
