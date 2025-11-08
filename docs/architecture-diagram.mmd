@@ -1,0 +1,49 @@
+%%{init: {'theme':'dark', 'themeVariables': { 'primaryColor':'#283b95','primaryTextColor':'#fff','primaryBorderColor':'#4CAF50','lineColor':'#4CAF50','secondaryColor':'#17b2c3','tertiaryColor':'#1a1a1a'}}}%%
+graph TB
+    User["👤 User<br/>Siapa dosen pembimbing Agus?"]
+
+    subgraph Agent["🧠 Agent (Brain)<br/>GPT-4o-mini"]
+        Decision["Saya perlu tool<br/>get_dosen_pembimbing"]
+    end
+
+    subgraph RAG["📚 RAG System<br/>Find Relevant Tools"]
+        Retrieval["Semantic Search<br/>ChromaDB"]
+        TopTools["Top 3 Tools:<br/>1. get_dosen_pembimbing (0.91)<br/>2. get_mata_kuliah (0.45)<br/>3. list_students (0.32)"]
+    end
+
+    subgraph MCP["🛡️ MCP Servers<br/>Security Bridge"]
+        Utilitas["⚙️ Utilitas Server<br/>- get_waktu_saat_ini<br/>- kalkulator_sederhana"]
+        Akademik["🎓 Akademik Server<br/>- get_dosen_pembimbing<br/>- get_mata_kuliah<br/>- list_all_students"]
+    end
+
+    Database[("💾 SQLite Database<br/>kampus.db<br/><br/>Tables:<br/>• dosen<br/>• mahasiswa<br/>• mata_kuliah<br/>• transkrip")]
+
+    Response["✅ Response<br/>Dosen pembimbing Agus<br/>adalah Dr. Budi Santoso"]
+
+    User -->|Query| Agent
+    Agent -->|"Step 1:<br/>Find Tools"| RAG
+    RAG --> Retrieval
+    Retrieval --> TopTools
+    TopTools -->|Selected Tools| Agent
+    Agent -->|"Step 2:<br/>Execute Tool"| MCP
+    MCP --> Akademik
+    Akademik -->|"SQL Query<br/>(Parameterized)"| Database
+    Database -->|Result| Akademik
+    Akademik --> MCP
+    MCP --> Agent
+    Agent --> Response
+    Response --> User
+
+    classDef userClass fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef agentClass fill:#283b95,stroke:#1565C0,stroke-width:3px,color:#fff
+    classDef ragClass fill:#17b2c3,stroke:#0097A7,stroke-width:3px,color:#fff
+    classDef mcpClass fill:#7B1FA2,stroke:#6A1B9A,stroke-width:3px,color:#fff
+    classDef dbClass fill:#F57C00,stroke:#E65100,stroke-width:3px,color:#fff
+    classDef responseClass fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+
+    class User userClass
+    class Agent,Decision agentClass
+    class RAG,Retrieval,TopTools ragClass
+    class MCP,Utilitas,Akademik mcpClass
+    class Database dbClass
+    class Response responseClass

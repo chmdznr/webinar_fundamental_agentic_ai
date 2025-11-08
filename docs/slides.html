@@ -117,48 +117,28 @@
 
                 <section>
                     <h2>Arsitektur Agentic AI</h2>
-                    <pre><code data-trim data-noescape class="language-plaintext" style="font-size: 0.35em;">
-User: "Siapa dosen pembimbing Agus?"
-       ↓
-┌──────────────────────────────────────┐
-│    Agent (Brain) - GPT-4o-mini       │
-│  "Saya perlu tool get_dosen_pembimbing" │
-└─────┬────────────────────────────┬───┘
-      │                            │
- Step 1: RAG               Step 2: Execute
-      ▼                            ▼
-┌─────────────┐          ┌──────────────────┐
-│  RAG System │          │   MCP Servers    │
-│  Find Tools │          │  ┌────────────┐  │
-└─────────────┘          │  │ Akademik   │  │
-                         │  │ - SQL Query│  │
-                         │  └─────┬──────┘  │
-                         └────────┼─────────┘
-                                  ▼
-                         ┌──────────────────┐
-                         │  kampus.db       │
-                         │  (SQLite)        │
-                         └──────────────────┘
-                    </code></pre>
+                    <img src="architecture-diagram.png" alt="Architecture Diagram" style="max-width: 90%; max-height: 600px; margin-top: 20px;">
                 </section>
 
                 <section>
                     <h2>4 Komponen Utama</h2>
-                    <div class="fragment architecture-box">
-                        <h3>1. 🧠 Agent (Otak)</h3>
-                        <p class="small">GPT-4o-mini yang mengambil keputusan: "Tool mana yang harus dipakai?"</p>
-                    </div>
-                    <div class="fragment architecture-box">
-                        <h3>2. 🛡️ MCP (Security Bridge)</h3>
-                        <p class="small">AI TIDAK pernah langsung akses database. Hanya boleh panggil tools yang didefinisikan.</p>
-                    </div>
-                    <div class="fragment architecture-box">
-                        <h3>3. 🔧 Tools (Pekerja)</h3>
-                        <p class="small">Function konkret ditulis oleh MANUSIA yang melakukan pekerjaan nyata.</p>
-                    </div>
-                    <div class="fragment architecture-box">
-                        <h3>4. 📚 RAG (Pustakawan)</h3>
-                        <p class="small">Cari tools yang relevan dari ribuan pilihan pakai semantic search.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; font-size: 0.85em;">
+                        <div class="fragment architecture-box" style="padding: 15px; margin: 0;">
+                            <h3 style="font-size: 1.1em; margin-bottom: 8px;">1. 🧠 Agent (Otak)</h3>
+                            <p style="font-size: 0.85em; margin: 0;">GPT-4o-mini yang mengambil keputusan: "Tool mana yang harus dipakai?"</p>
+                        </div>
+                        <div class="fragment architecture-box" style="padding: 15px; margin: 0;">
+                            <h3 style="font-size: 1.1em; margin-bottom: 8px;">2. 🛡️ MCP (Security Bridge)</h3>
+                            <p style="font-size: 0.85em; margin: 0;">AI TIDAK pernah langsung akses database. Hanya boleh panggil tools yang didefinisikan.</p>
+                        </div>
+                        <div class="fragment architecture-box" style="padding: 15px; margin: 0;">
+                            <h3 style="font-size: 1.1em; margin-bottom: 8px;">3. 🔧 Tools (Pekerja)</h3>
+                            <p style="font-size: 0.85em; margin: 0;">Function konkret ditulis oleh MANUSIA yang melakukan pekerjaan nyata.</p>
+                        </div>
+                        <div class="fragment architecture-box" style="padding: 15px; margin: 0;">
+                            <h3 style="font-size: 1.1em; margin-bottom: 8px;">4. 📚 RAG (Pustakawan)</h3>
+                            <p style="font-size: 0.85em; margin: 0;">Cari tools yang relevan dari ribuan pilihan pakai semantic search.</p>
+                        </div>
                     </div>
                 </section>
 
