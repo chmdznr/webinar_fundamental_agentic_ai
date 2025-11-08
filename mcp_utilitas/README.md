@@ -68,6 +68,22 @@ python server.py
 
 The server will start and listen for MCP protocol connections.
 
+### Transport Options
+
+`server.py` accepts a few CLI flags so you can decide how the transport should run:
+
+```
+python server.py \
+  --transport sse \
+  --host 127.0.0.1 \
+  --port 8081
+```
+
+- `--transport stdio` (default): used by `agent/orchestrator_proper_mcp.py`, the server runs as a stdio subprocess.
+- `--transport sse`: starts an HTTP/SSE endpoint suitable for remote clients (e.g., `agent/orchestrator_remote_mcp.py` or the `scripts/run_remote_demo.sh` workflow). `--host` and `--port` let you choose the bind address.
+
+The automation script `./scripts/run_remote_demo.sh` uses the SSE mode on ports `8081/8082` by default.
+
 ## Testing Tools
 
 You can test the tools using the MCP inspector or by connecting an agent client.

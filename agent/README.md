@@ -2,21 +2,24 @@
 
 This directory contains the main **Agent Orchestrator** - the intelligent "Brain" that coordinates everything.
 
-## 📁 Two Implementations Available
+## 📁 Three Implementations Available
 
-This project includes **two versions** of the orchestrator:
+Choose the orchestrator that matches your demo or deployment scenario:
 
-1. **`orchestrator.py`** - Simple implementation (recommended for demos)
-   - Direct function imports
-   - Synchronous code
-   - Beginner-friendly
-   - Perfect for 1-hour webinar
+1. **`orchestrator.py`** – Simple implementation (recommended for fast demos)
+   - Direct function imports (no real MCP traffic)
+   - Synchronous code, super easy to follow
+   - Perfect for the 1-hour webinar walkthrough
 
-2. **`orchestrator_proper_mcp.py`** - Proper MCP implementation (production-ready)
-   - Real client/server protocol
-   - Asynchronous code
-   - Supports remote servers
-   - Standards-compliant
+2. **`orchestrator_proper_mcp.py`** – Proper MCP over stdio (production-ready)
+   - Spawns both MCP servers as subprocesses and connects via official MCP protocol
+   - Fully asynchronous and standards-compliant
+   - Clean shutdown logic (exit the CLI without cancel-scope warnings)
+
+3. **`orchestrator_remote_mcp.py`** – Remote MCP client (SSE/HTTP)
+   - Uses `agent/mcp_servers.yaml` (or `MCP_SERVERS_CONFIG`) to discover endpoints
+   - Connects to servers that are already running (local or remote) over SSE
+   - Leveraged by `scripts/run_remote_demo.sh` + `scripts/test_remote_mcp.py` for automated smoke tests and webinars that involve multiple machines
 
 **For detailed comparison:** See [MCP Implementation Comparison](../docs/MCP_IMPLEMENTATION_COMPARISON.md)
 
@@ -257,6 +260,23 @@ print(result['retrieved_tools'])
 # → ['get_dosen_pembimbing', 'get_mata_kuliah_mahasiswa', 'list_all_students']
 print(result['tool_used'])
 # → 'get_dosen_pembimbing'
+
+## Remote MCP Workflow
+
+Need to prove the agent can talk to MCP servers running on other machines (or separate terminals)? Use the remote client:
+
+1. Configure endpoints in `agent/mcp_servers.yaml` (or point `MCP_SERVERS_CONFIG` to your own file). Each entry can use `transport: sse` with a `url`, or `transport: stdio` with a command/args pair.
+2. Launch the servers. For SSE, both `mcp_utilitas/server.py` and `mcp_akademik/server.py` accept `--transport sse --host ... --port ...`.
+3. Drive the client:
+   ```bash
+   # One-off smoke test
+   python scripts/test_remote_mcp.py --query "Jam berapa sekarang?"
+
+   # Full automation (installs deps, starts servers, runs the test harness)
+   ./scripts/run_remote_demo.sh --no-rag
+   ```
+
+`scripts/test_remote_mcp.py` instantiates `agent/orchestrator_remote_mcp.py`, which will only attempt to load tools that are actually listed in the YAML config (and will surface clean warnings/logs if a server is unreachable).
 ```
 
 ## System Prompt

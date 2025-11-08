@@ -9,7 +9,8 @@ Comparison between **Simple (Direct Import)** vs **Proper MCP** implementations.
 This project includes **two implementations** of the agent orchestrator:
 
 1. **`orchestrator.py`** - Simple implementation using direct imports (demo-friendly)
-2. **`orchestrator_proper_mcp.py`** - Proper MCP protocol implementation (production-ready)
+2. **`orchestrator_proper_mcp.py`** - Proper MCP protocol implementation (production-ready, stdio transport)
+3. **`orchestrator_remote_mcp.py`** - YAML-driven variant that connects to remote MCP servers over SSE/HTTP
 
 Both achieve the same goal but with different approaches. This document explains when to use each.
 
@@ -19,13 +20,13 @@ Both achieve the same goal but with different approaches. This document explains
 
 | Aspect | Simple Implementation | Proper MCP Implementation |
 |--------|----------------------|---------------------------|
-| **File** | `agent/orchestrator.py` | `agent/orchestrator_proper_mcp.py` |
-| **Architecture** | Direct function calls | Client/Server protocol |
+| **File** | `agent/orchestrator.py` | `agent/orchestrator_proper_mcp.py` / `agent/orchestrator_remote_mcp.py` |
+| **Architecture** | Direct function calls | Client/Server protocol (stdio or SSE) |
 | **Complexity** | Low ✅ | Medium ⚠️ |
 | **Code Style** | Synchronous | Asynchronous (async/await) |
 | **Setup** | Single process | Multiple processes |
 | **Remote Servers** | Not supported ❌ | Fully supported ✅ |
-| **Protocol** | Direct Python import | MCP JSON-RPC over stdio |
+| **Protocol** | Direct Python import | MCP JSON-RPC over stdio/SSE |
 | **Learning Curve** | Beginner-friendly ✅ | Intermediate ⚠️ |
 | **Production Ready** | No ❌ | Yes ✅ |
 | **Best For** | Demos, tutorials, learning | Production, remote servers |
@@ -154,6 +155,47 @@ graph LR
 ```
 
 **Separate Processes - True client/server architecture**
+
+### Architecture (Remote MCP via SSE)
+
+```mermaid
+graph LR
+    subgraph Orchestrator["🔷 Agent Orchestrator<br/>(Remote YAML Config)"]
+        RemoteClient["MCP Client<br/>Session"]
+        Config["mcp_servers.yaml"]
+        RemoteClient -->|reads| Config
+    end
+
+    subgraph Network["🌐 Network Boundary"]
+        subgraph Utilitas["🔶 MCP Utilitas Server (SSE)"]
+            UtilServer["FastMCP + SSE"]
+            UtilTools["Tools: get_waktu_saat_ini, kalkulator"]
+            UtilServer --> UtilTools
+        end
+
+        subgraph Akademik["🔶 MCP Akademik Server (SSE)"]
+            AkadServer["FastMCP + SSE"]
+            AkadTools["Tools: get_dosen_pembimbing, ..."]
+            AkadDB[("SQLite<br/>kampus.db")]
+            AkadServer --> AkadTools --> AkadDB
+        end
+    end
+
+    RemoteClient <-->|HTTP/SSE| UtilServer
+    RemoteClient <-->|HTTP/SSE| AkadServer
+
+    style Orchestrator fill:#e1f5ff,stroke:#0288d1,stroke-width:3px
+    style Network fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    style RemoteClient fill:#64b5f6,stroke:#1976d2,stroke-width:2px
+    style Config fill:#bbdefb,stroke:#1976d2,stroke-width:1px
+    style UtilServer fill:#ffb74d,stroke:#e65100,stroke-width:2px
+    style AkadServer fill:#ffb74d,stroke:#e65100,stroke-width:2px
+    style UtilTools fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style AkadTools fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style AkadDB fill:#ffccbc,stroke:#d84315,stroke-width:2px
+```
+
+`agent/orchestrator_remote_mcp.py` loads the YAML file, connects to each SSE endpoint, and registers the advertised tools. Servers can live on the same laptop (e.g., via `./scripts/run_remote_demo.sh`) or on different machines.
 
 ### Communication Protocol
 
@@ -311,42 +353,44 @@ python orchestrator_proper_mcp.py
 
 ## 🌐 Remote Server Example (Proper MCP Only)
 
-### Server (Remote Machine)
+`agent/orchestrator_remote_mcp.py` plus `agent/mcp_servers.yaml` provide a turnkey way to connect to MCP servers running outside the orchestrator process (local or remote SSE endpoints). This is the setup that powers `./scripts/run_remote_demo.sh`.
 
-```python
-# Run MCP server on remote machine
-# Listen on HTTP/SSE transport
-from fastmcp import FastMCP
+### Server (SSE Mode)
 
-mcp = FastMCP("Akademik")
+```bash
+# Utilitas server on port 8081
+python mcp_utilitas/server.py --transport sse --host 0.0.0.0 --port 8081
 
-# ... define tools ...
+# Akademik server on port 8082
+python mcp_akademik/server.py --transport sse --host 0.0.0.0 --port 8082
+```
 
-if __name__ == "__main__":
-    # Listen on network
-    mcp.run(transport="sse", port=8080)
+### Client Configuration
+
+```yaml
+# agent/mcp_servers.yaml
+servers:
+  - name: utilitas
+    transport: sse
+    url: http://10.0.0.12:8081/sse
+
+  - name: akademik
+    transport: sse
+    url: http://10.0.0.15:8082/sse
 ```
 
 ```bash
-# Server running on 192.168.1.100:8080
-python mcp_akademik/server.py
+export MCP_SERVERS_CONFIG=/path/to/servers.yaml
+python scripts/test_remote_mcp.py --query "Jam berapa sekarang?"
 ```
 
-### Client (Local Machine)
+Need the whole workflow automated? Run:
 
-```python
-# Connect to remote server via HTTP
-from httpx_sse import connect_sse
-
-async with connect_sse("http://192.168.1.100:8080/sse") as (read, write):
-    async with ClientSession(read, write) as session:
-        # Same API as local!
-        await session.initialize()
-        tools = await session.list_tools()
-        result = await session.call_tool("get_dosen_pembimbing", {...})
+```bash
+./scripts/run_remote_demo.sh --no-rag
 ```
 
-**This is IMPOSSIBLE with simple implementation!** ❌
+The script installs dependencies, launches both servers in SSE mode, and drives the remote orchestrator. **None of this is possible with the simple `orchestrator.py` implementation.**
 
 ---
 

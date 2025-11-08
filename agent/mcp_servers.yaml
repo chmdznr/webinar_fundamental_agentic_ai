@@ -1,0 +1,27 @@
+#
+# Default MCP server configuration for remote orchestration.
+# Update the URLs/commands below to match your deployment.
+#
+# Each entry supports either:
+#   transport: "sse" (remote HTTP/SSE endpoint)
+#     - url: Full URL to the server's /sse endpoint
+#     - headers: (optional) extra HTTP headers
+#   transport: "stdio" (spawn local process; same behavior as proper MCP orchestrator)
+#     - command: Executable to run (defaults to current Python)
+#     - args: List of arguments (defaults to server script path)
+#     - env: Optional environment overrides
+#
+# Tip: point these URLs to remote machines/ports when MCP servers live outside
+# the orchestrator host.
+#
+
+servers:
+  - name: utilitas
+    transport: sse
+    url: http://localhost:8081/sse
+    description: "Utility tool server exposing waktu & kalkulator tools"
+
+  - name: akademik
+    transport: sse
+    url: http://localhost:8082/sse
+    description: "Academic tool server exposing dospem & mata kuliah tools"

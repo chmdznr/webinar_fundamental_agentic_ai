@@ -25,6 +25,7 @@ Requirements:
 import asyncio
 import os
 import sys
+from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -87,6 +88,7 @@ class ProperMCPOrchestrator:
         self.mcp_sessions = {}
         self.mcp_contexts = {}  # Store context managers
         self.all_tools = {}
+        self._exit_stack: AsyncExitStack | None = None
 
         print("\n🔌 MCP Servers will be connected on demand")
         print("=" * 60)
@@ -112,6 +114,10 @@ class ProperMCPOrchestrator:
             }
         }
 
+        # Initialize exit stack if not already set
+        if self._exit_stack is None:
+            self._exit_stack = AsyncExitStack()
+
         # Connect to each server
         for server_name, server_config in servers.items():
             try:
@@ -126,16 +132,16 @@ class ProperMCPOrchestrator:
 
                 # Connect to the server via stdio (context manager)
                 stdio_ctx = stdio_client(server_params)
-                read, write = await stdio_ctx.__aenter__()
+                read, write = await self._exit_stack.enter_async_context(stdio_ctx)
 
-                # Store context manager for cleanup
+                # Store context manager for reference
                 self.mcp_contexts[server_name] = stdio_ctx
 
                 # Create MCP session (context manager)
                 session_ctx = ClientSession(read, write)
-                session = await session_ctx.__aenter__()
+                session = await self._exit_stack.enter_async_context(session_ctx)
 
-                # Store session context for cleanup
+                # Store session context for reference
                 self.mcp_sessions[server_name] = (session, session_ctx)
 
                 # Initialize the session
@@ -211,24 +217,18 @@ class ProperMCPOrchestrator:
         """Disconnect from all MCP servers."""
         print("\n🔌 Disconnecting from MCP Servers...")
 
-        for server_name, (session, session_ctx) in self.mcp_sessions.items():
-            try:
-                # Close the session context
-                await session_ctx.__aexit__(None, None, None)
-                print(f"  ✓ Disconnected session from {server_name}")
-            except Exception as e:
-                print(f"  ⚠️  Error disconnecting session from {server_name}: {e}")
-
-        for server_name, stdio_ctx in self.mcp_contexts.items():
-            try:
-                # Close the stdio context
-                await stdio_ctx.__aexit__(None, None, None)
-                print(f"  ✓ Closed stdio connection to {server_name}")
-            except Exception as e:
-                print(f"  ⚠️  Error closing stdio to {server_name}: {e}")
-
-        self.mcp_sessions.clear()
-        self.mcp_contexts.clear()
+        try:
+            if self._exit_stack is not None:
+                await self._exit_stack.aclose()
+                print("  ✓ Closed all MCP contexts via exit stack")
+        except Exception as e:
+            print(f"  ⚠️  Error during MCP shutdown: {e}")
+        finally:
+            self._exit_stack = None
+            self.mcp_sessions.clear()
+            self.mcp_contexts.clear()
+            self.all_tools.clear()
+            print("🔌 All MCP connections closed.")
 
     def _create_agent(self, tools: List[Tool]) -> AgentExecutor:
         """

@@ -11,9 +11,12 @@ Tools:
 - get_mata_kuliah_mahasiswa(nama_mahasiswa): Get student's course list with grades
 
 Usage:
-    python server.py
+    python server.py [--transport sse --host 127.0.0.1 --port 8082]
 """
 
+import argparse
+
+# SSE transport helper dependencies are loaded lazily inside run_server()
 from fastmcp import FastMCP
 from database import get_db
 
@@ -166,7 +169,61 @@ def list_all_students() -> str:
         return f"Error saat mengambil daftar mahasiswa: {str(e)}"
 
 
+def parse_args():
+    """Parse CLI options for transport/host/port."""
+    parser = argparse.ArgumentParser(description="Run MCP Akademik server.")
+    parser.add_argument(
+        "--transport",
+        default="stdio",
+        choices=["stdio", "sse"],
+        help="Transport mechanism. Use 'sse' for remote HTTP/SSE servers.",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind when using SSE.")
+    parser.add_argument("--port", type=int, default=8082, help="Port to bind when using SSE.")
+    return parser.parse_args()
+
+
+def run_server(transport: str, host: str, port: int):
+    """Run FastMCP server using either stdio or SSE transport."""
+    if transport == "sse":
+        from starlette.applications import Starlette
+        from starlette.responses import Response
+        from starlette.routing import Route, Mount
+        from mcp.server.sse import SseServerTransport
+        import uvicorn
+
+        sse = SseServerTransport("/messages/")
+
+        async def handle_sse(request):
+            async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
+                await mcp._mcp_server.run(
+                    streams[0],
+                    streams[1],
+                    mcp._mcp_server.create_initialization_options(),
+                )
+            return Response()
+
+        app = Starlette(
+            debug=mcp.settings.debug,
+            routes=[
+                Route("/sse", endpoint=handle_sse, methods=["GET"]),
+                Mount("/messages/", app=sse.handle_post_message),
+            ],
+        )
+
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level=mcp.settings.log_level,
+        )
+    else:
+        mcp.run(transport="stdio")
+
+
 if __name__ == "__main__":
+    args = parse_args()
+
     # Test database connection
     print("🔍 Testing database connection...")
     if db.test_connection():
@@ -183,7 +240,6 @@ if __name__ == "__main__":
     print("  - get_mata_kuliah_mahasiswa(nama_mahasiswa): Get student's courses")
     print("  - list_all_students(): List all registered students")
     print(f"\nDatabase: {db.db_path}")
-    print("\nServer running...")
+    print(f"\nTransport: {args.transport.upper()}")
 
-    # Start the FastMCP server
-    mcp.run()
+    run_server(args.transport, args.host, args.port)

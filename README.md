@@ -78,12 +78,18 @@ webinar_fundamental_agentic_ai/
 │   └── README.md
 │
 ├── agent/                      # Agent Orchestrator
-│   ├── orchestrator.py         # Main agent logic
+│   ├── orchestrator.py         # Main agent (direct imports)
+│   ├── orchestrator_proper_mcp.py  # True MCP over stdio
+│   ├── orchestrator_remote_mcp.py  # YAML-driven remote MCP
+│   ├── mcp_servers.yaml        # Default remote server config
 │   ├── config.py               # Configuration
 │   └── README.md
 │
 ├── scripts/                    # Helper scripts
-│   └── test_demo_scenarios.py  # Test all 4 demo scenarios
+│   ├── test_demo_scenarios.py          # Test all 4 demo scenarios (simple agent)
+│   ├── test_demo_scenarios_proper_mcp.py # Exercise proper MCP orchestrator
+│   ├── test_remote_mcp.py              # Smoke-test remote MCP orchestration
+│   └── run_remote_demo.sh              # Start SSE servers + run remote test
 │
 └── docs/
     └── plans/
@@ -167,13 +173,31 @@ Then try these queries:
 🤖 Agent: Maaf, saya tidak memiliki tools untuk mengubah data...
 ```
 
-### Test All 4 Scenarios
+### Test All 4 Scenarios (Local Imports)
 
 ```bash
 python scripts/test_demo_scenarios.py
 ```
 
 This will run all demo scenarios with detailed output.
+
+### Remote MCP Demo (SSE)
+
+When you want to prove that the agent can talk to **real remote MCP servers**, use the remote orchestrator workflow:
+
+```bash
+conda activate agenkampus
+./scripts/run_remote_demo.sh            # installs deps, launches both servers (SSE), runs tests
+# or pass extra args to the test harness, e.g.
+./scripts/run_remote_demo.sh --no-rag --query "Jam berapa sekarang?"
+```
+
+The script will:
+1. Install dependencies via `uv pip install -r requirements.txt`
+2. Launch `mcp_utilitas/server.py` on `127.0.0.1:8081` and `mcp_akademik/server.py` on `127.0.0.1:8082` using SSE transport
+3. Run `scripts/test_remote_mcp.py`, which in turn drives `agent/orchestrator_remote_mcp.py`
+
+Remote endpoints are configured through `agent/mcp_servers.yaml`. Update the URLs/ports (or point `MCP_SERVERS_CONFIG` to a different file) when your servers live on other machines.
 
 ## 📚 Component Details
 
@@ -234,11 +258,13 @@ This will run all demo scenarios with detailed output.
 1. **RAG Step:** Retrieve top 3 relevant tools
 2. **Agent Step:** LLM decides which to use and executes
 
-**Configuration:**
-- Model: OpenAI GPT-4o-mini
-- Temperature: 0.0 (deterministic)
-- Max Iterations: 5
-- Verbose: True (educational!)
+**Implementations available:**
+
+- `orchestrator.py` — simple direct-import version (best for quick demos)
+- `orchestrator_proper_mcp.py` — full MCP stdio client that spawns the servers as subprocesses, now with graceful shutdown
+- `orchestrator_remote_mcp.py` — new YAML-driven client that connects to remote MCP servers over SSE/HTTP (used by `scripts/run_remote_demo.sh`)
+
+See `agent/README.md` for when to choose each approach and how to customize `mcp_servers.yaml`.
 
 **Cost:** ~$0.0002 per query
 

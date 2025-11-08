@@ -149,6 +149,22 @@ Database: /path/to/database/kampus.db
 Server running...
 ```
 
+### Transport Options
+
+Just like the Utilitas server, this script accepts CLI flags so you can decide how it should listen:
+
+```
+python server.py \
+  --transport sse \
+  --host 127.0.0.1 \
+  --port 8082
+```
+
+- `--transport stdio` (default) pairs nicely with `agent/orchestrator_proper_mcp.py`, which spawns the server as a subprocess.
+- `--transport sse` exposes the tools over HTTP/SSE so remote clients (for example `agent/orchestrator_remote_mcp.py` or `scripts/run_remote_demo.sh`) can interact with it.
+
+The automation script starts Utilitas on `8081` and Akademik on `8082`, so feel free to reuse those defaults or change the values and update `agent/mcp_servers.yaml`.
+
 ## Testing Tools
 
 ### Manual Testing

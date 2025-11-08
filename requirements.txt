@@ -16,6 +16,7 @@ sentence-transformers==3.3.1
 python-dotenv==1.0.1
 pydantic==2.10.5
 pydantic-settings==2.7.1
+PyYAML==6.0.2
 
 # Development & Testing
 pytest==8.3.4
