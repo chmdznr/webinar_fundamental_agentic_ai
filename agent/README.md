@@ -2,6 +2,24 @@
 
 This directory contains the main **Agent Orchestrator** - the intelligent "Brain" that coordinates everything.
 
+## 📁 Two Implementations Available
+
+This project includes **two versions** of the orchestrator:
+
+1. **`orchestrator.py`** - Simple implementation (recommended for demos)
+   - Direct function imports
+   - Synchronous code
+   - Beginner-friendly
+   - Perfect for 1-hour webinar
+
+2. **`orchestrator_proper_mcp.py`** - Proper MCP implementation (production-ready)
+   - Real client/server protocol
+   - Asynchronous code
+   - Supports remote servers
+   - Standards-compliant
+
+**For detailed comparison:** See [MCP Implementation Comparison](../docs/MCP_IMPLEMENTATION_COMPARISON.md)
+
 ## Architecture
 
 ```

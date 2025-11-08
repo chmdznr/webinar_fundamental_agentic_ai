@@ -385,12 +385,6 @@ cd ../rag && python tool_retriever.py
 - Overview: Press `ESC` key
 - Print to PDF: Add `?print-pdf` to URL
 
-**Presenter Guide:** [docs/WEBINAR_PRESENTATION.md](docs/WEBINAR_PRESENTATION.md)
-- Detailed demo scripts with talking points
-- Architecture explanations for beginners
-- Live demo scenarios with expected outputs
-- Common Q&A and troubleshooting
-- Presenter notes and timing guide
 
 ### Quick Demo Flow
 
