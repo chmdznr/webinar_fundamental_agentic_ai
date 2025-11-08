@@ -374,41 +374,25 @@ cd database && python setup_database.py
 cd ../rag && python tool_retriever.py
 ```
 
-## 🎤 Webinar Demo Script
+## 🎤 Webinar Presentation
 
-### [00:00-05:00] Introduction
-- Show architecture diagram
-- Explain: Agent, MCP, RAG, Tools
-- Emphasize: "AI never touches database directly"
+For complete webinar presentation materials including:
+- Detailed demo scripts with talking points
+- Architecture explanations for beginners
+- Live demo scenarios with expected outputs
+- Common Q&A and troubleshooting
+- Presenter notes and timing guide
 
-### [05:00-15:00] Database & MCP Servers
-- Show `kampus.db` in DB Browser
-- Open `mcp_akademik/server.py`
-- Highlight: Tool docstrings, parameterized SQL
-- **Key Point:** "SQL written by humans, not AI"
+**See:** [docs/WEBINAR_PRESENTATION.md](docs/WEBINAR_PRESENTATION.md)
 
-### [15:00-25:00] RAG System
-- Run `rag/tool_retriever.py` demo
-- Show ChromaDB similarity scores
-- Explain: "Librarian finds relevant tools"
-- **Key Point:** "Scales to 1000+ tools"
+### Quick Demo Flow
 
-### [25:00-45:00] Live Agent Demo
-- Run `python agent/orchestrator.py`
-- Demo all 4 scenarios:
-  1. Time query (simple)
-  2. Advisor query (database)
-  3. Courses query (complex JOIN)
-  4. **Write attempt (security demo!)**
-- Show verbose logs: RAG → Decision → Execution
-
-### [45:00-55:00] Behind the Scenes
-- Show agent logs
-- Explain 2-step workflow
-- Show RAG retrieval
-- Show tool selection reasoning
-
-### [55:00-60:00] Q&A
+1. **[00:00-05:00]** Introduction - Explain Agentic AI concepts
+2. **[05:00-15:00]** Database & MCP Servers - Show security patterns
+3. **[15:00-25:00]** RAG System - Demonstrate tool retrieval
+4. **[25:00-45:00]** Live Agent Demo - Run all 4 scenarios
+5. **[45:00-55:00]** Behind the Scenes - Code walkthrough
+6. **[55:00-60:00]** Q&A and next steps
 
 ## 📖 Further Reading
 
